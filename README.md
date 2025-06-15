@@ -1,33 +1,33 @@
 # CellSegTrack – Cell Segmentation & Tracking Pipeline (TFG)
 
-This repository contains the code and resources for the Final Degree Project (TFG): **CellSegTrack**—a modular pipeline for:
+This repository hosts the code and resources for the Final Degree Project (**TFG**) entitled **CellSegTrack**—a modular pipeline that supports:
 
-1. **Training a custom Cellpose model** on cell microscopy images.  
+1. **Training a custom Cellpose model** on microscopy images.  
 2. **Performing segmentation and tracking** on time‑lapse cell videos.
 
 ---
 
 ## 🧠 Features
 
-### 1. Train Cellpose Model
+### 1. Train a Cellpose Model
 
-Train a custom Cellpose model using your own dataset:
+Train your own Cellpose model with a single command:
 
 ```bash
 python train_model_main.py <model_name>
 ```
 
-- Inputs images in `cellpose_model_training/pretrain`
-- Applies data augmentation (`data_augmentation.py`)
-- Trains using `cellpose_training.py`
-- Outputs the model in the same directory  
-- A pretrained model is already provided in `cellpose_model_training/`
+* **Input:** images placed in `cellpose_model_training/pretrain`  
+* **Data augmentation:** handled by `data_augmentation.py`  
+* **Training:** executed by `cellpose_training.py`  
+* **Output:** the trained model is saved inside the same folder  
+* A ready‑to‑use pretrained model is already included.
 
 ---
 
 ### 2. Segmentation & Tracking Pipeline
 
-Run preprocessing, segmentation, and/or tracking on `.tif` videos:
+Run preprocessing, segmentation and/or tracking on a `.tif` video:
 
 ```bash
 python main.py [--pre] [--seg] [--track] [--all] \
@@ -36,43 +36,63 @@ python main.py [--pre] [--seg] [--track] [--all] \
     <video_name>
 ```
 
-- **Preprocessing** (`--pre` / `--all`):  
-  Extract frames and separate channels (script: `preprocessing/tif_slicer_green.py`).
+---
 
-- **Segmentation** (`--seg` / `--all`):  
-  Apply the Cellpose model to segment cells (script: `segmentation/CellposeTrainedModel.py`).  
-  Generates overlay plots with `plotting/plots.py`.
+## ⚙️ Execution Parameters
 
-- **Tracking** (`--track` / `--all`):  
-  Perform backward tracking on segmented masks (script: `tracking/track_assembler.py`).  
-  Plots resulting tracks and lineage descriptors via `plotting/plots.py`.
+`main.py` exposes two sets of options:
 
-#### `main.py` Highlights
+1. **Pipeline parameters** – decide which stage(s) to run.  
+2. **Algorithm parameters** – fine‑tune how the processing itself works.
 
-- Flags for each step and chaining options.
-- Default parameters:  
-  `green-index = 1`, `red-index = 0`, `search-radius = 35 px`, `frames-window = 3 frames`.
-- Auto‑detects total frames for tracking termination.
+### 1) Pipeline parameters
+| Flag | Purpose | Script(s) involved |
+|------|---------|--------------------|
+| `--pre` | **Pre‑processing** – splits the TIFF into individual frames and separates red/green channels. | `preprocessing/tif_slicer_green.py` |
+| `--seg` | **Segmentation** – applies the trained Cellpose model to the green frames and produces mask overlays. | `segmentation/CellposeTrainedModel.py`, `plotting/plots.py` |
+| `--track` | **Tracking** – reconstructs cell trajectories backward in time and plots the results. | `tracking/track_assembler.py`, `plotting/plots.py` |
+| `--all` | Runs *pre‑processing → segmentation → tracking* in sequence. | all of the above |
 
-Example usages:
+### 2) Algorithm parameters
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--green-index <int>` | `1` | Zero‑based index for the green channel in the TIFF (used during pre‑processing). |
+| `--red-index <int>`   | `0` | Zero‑based index for the red channel in the TIFF (used during pre‑processing). |
+| `--search-radius <int>` | `35` px | Pixel radius used to match masks between consecutive frames during tracking. |
+| `--frames-window <int>` | `3` frames | Temporal window (how many frames back) inspected when searching for correspondences. |
+
+---
+
+### Default values recap
+
+```text
+green-index   = 1
+red-index     = 0
+search-radius = 35  # pixels
+frames-window = 3   # frames
+```
+
+---
+
+### Example commands
 
 ```bash
-# Full pipeline:
-python main.py my_video --all
+# Full pipeline
+python main.py HeLa_01 --all
 
-# Only segmentation & tracking:
-python main.py my_video --seg --track
+# Segmentation + Tracking only
+python main.py HeLa_01 --seg --track
 
-# Tracking only, custom params:
-python main.py my_video \
+# Tracking only with custom parameters
+python main.py HeLa_01 \
     --track --search-radius 50 --frames-window 5
 ```
 
 ---
 
-## 🗑 Cleanup Tool
+### 🗑 Clean‑up tool
 
-Remove all outputs associated with a specific video:
+Remove every output generated for a specific video:
 
 ```bash
 python delete.py <video_name>
@@ -84,72 +104,46 @@ python delete.py <video_name>
 
 ```
 .
-├── cellpose_model_training/
-│   ├── data_augmentation.py
-│   ├── cellpose_training.py
-│   └── <trained_model_directory>/
-│
-├── preprocessing/
-│   └── tif_slicer_green.py
-│
-├── segmentation/
-│   └── CellposeTrainedModel.py
-│
-├── tracking/
-│   └── track_assembler.py
-│
-├── plotting/
-│   └── plots.py
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   ├── masks/
-│   └── results/
-│
-├── train_model_main.py
-├── main.py
-├── delete.py
-└── README.md
++-- cellpose_model_training/
+|   +-- data_augmentation.py
+|   +-- cellpose_training.py
+|   +-- <trained_model>/
+|
++-- preprocessing/
+|   +-- tif_slicer_green.py
+|
++-- segmentation/
+|   +-- CellposeTrainedModel.py
+|
++-- tracking/
+|   +-- track_assembler.py
+|
++-- plotting/
+|   +-- plots.py
+|
++-- data/
+|   +-- raw/          # original videos (.tif)
+|   +-- processed/    # extracted frames & channels
+|   +-- masks/        # segmentation masks
+|   +-- results/      # tracks & figures
+|
++-- train_model_main.py
++-- main.py
++-- delete.py
+\-- README.md
 ```
 
 ---
 
-## 🔧 Installation & Dependencies
+## 🔧 Installation
 
-Install required Python packages (tested on Python ≥ 3.8):
+Tested with **Python ≥ 3.8**. Install all dependencies with:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Key dependencies:
-
-- `cellpose`
-- `numpy`, `scipy`, `scikit-image`
-- `matplotlib`, `argparse`
-
----
-
-## 🎯 Usage Examples
-
-```bash
-# Train a model
-python train_model_main.py my_cell_model
-
-# Run the full pipeline
-python main.py sample_video --all
-
-# Segmentation only
-python main.py sample_video --seg
-
-# Custom tracking
-python main.py sample_video \
-    --track --search-radius 50 --frames-window 5
-
-# Clean data for a video
-python delete.py sample_video
-```
+Key libraries include: `cellpose`, `numpy`, `scipy`, `scikit-image`, `matplotlib`, `argparse`.
 
 ---
 
