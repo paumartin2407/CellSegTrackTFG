@@ -28,7 +28,7 @@ def main(experiment):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Uso: python delete.py <nombre_experimento>")
+        print("Usage: python delete.py <video_name>")
         sys.exit(1)
 
     experiment_name = sys.argv[1]
