@@ -21,7 +21,7 @@ python train_model_main.py <model_name>
 * **Data augmentation:** handled by `data_augmentation.py`  
 * **Training:** executed by `cellpose_training.py`  
 * **Output:** the trained model is saved inside the same folder  
-* A ready‑to‑use pretrained model is already included.
+* A **pretrained model** trained specifically on our dataset and used for the tracking and video analyses in this project is included for convenience; however, we recommend retraining your own model or using one of the official Cellpose models if your data differ.
 
 ---
 
@@ -116,6 +116,9 @@ python delete.py <video_name>
 |   +-- CellposeTrainedModel.py
 |
 +-- tracking/
+|   +-- cell_track.py
+|   +-- mincostflow_graph_builder.py
+|   +-- mincostflow_solver.py
 |   +-- track_assembler.py
 |
 +-- plotting/
